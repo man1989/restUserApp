@@ -4,7 +4,7 @@ const bodyPraser = require("body-parser");
 const express = require("express");
 
 let cache = new NodeCache( { checkperiod: 120 })
-let authMiddleware = require("./middleware/authorization")(cache);
+let authMiddleware = require("./middleware/authorization");
 let router = require("./router/user")(express, cache);
 let app = express();
 
