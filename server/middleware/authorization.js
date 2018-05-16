@@ -1,34 +1,15 @@
-const crypto  = require("crypto");
+const config = require("../config");
+const validation  = require("../util/hashing");
 const jwt = require("jsonwebtoken");
 
 module.exports = (cache) => {
-    return (req, res, next)=>{
-        let {username, password} = req.body;
-        let user = cache.get(username);
-        let isValid  = _hasValidPassword(password, user);
-        if(isValid){
-            res.status(200).send(user)
-        }else{
-            res.status(404).send("invalid username or password");
+    return (req, res, next) => {
+        console.log("authenticating.....");
+        let {"x-access-token": tokenId} = req.headers;
+        if(tokenId){
+            console.log("you are good");
+            return next();
         }
-        next();
+        return res.status(401).send("not authorized");
     }
-}
-
-function _getHashPassword(password, salt){
-    let hashCode = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
-    return {
-        password: hashCode,
-        salt: salt
-    };
-};
-
-function _getSalt(){
-    return crypto.randomBytes(10).toString("hex");
-};
-
-function _hasValidPassword(password, user){
-    let {password: savedPassword, salt} = user;
-    let hashObj = _getHashPassword(password, salt);
-    return crypto.timingSafeEqual(Buffer.from(savedPassword), Buffer.from(hashObj.password));
 }

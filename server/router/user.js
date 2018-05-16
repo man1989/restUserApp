@@ -1,32 +1,47 @@
+const config = require("../config");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const validate = require("../util/hashing");
+
 module.exports = (express, cache) => {
+    
     let router = express.Router();
-    router.post("/user", (req, res, next) => {
+    let safe = express.Router();
+
+    safe.post("/register", (req, res, next) => {
         let user = req.body;
         let {username: id, password} = user;
-        let hashObj = _getHashPassword(password, _getSalt());
+        let hashObj = validate.getHashPassword(password, validate.getSalt());
         Object.assign(user, hashObj);
         cache.set(id, user);
         res.status(201).send("success");
+        next();
     });
-    router.post("/user/login", function(req, res, next){
-        console.log(req.body);
+
+    safe.post("/login", function(req, res, next){
         let {username, password} = req.body;
         let user = cache.get(username);
-        let isValid  = _hasValidPassword(password, user);
+        let isValid  = validate.isValidPassword(password, user);
         if(isValid){
-            res.status(200).send(user)
+            let token = jwt.sign({username: username}, config.SECRET_KEY);
+            res.status(200).send({
+                tokenId: token
+            });
         }else{
             res.status(404).send("invalid username or password");
+            console.log("authentication error");
         }
+        next();
     });
-    router.get("/users/:id", function(req, res, next){
+
+    router.get("/user/:id", function(req, res, next){
         let {id} = req.params;
         let user = cache.get(id);
         res.status(200).send(user);
+        next();
     });
 
-    router.put("/users/:id", function(req, res, next){
+    router.put("/user/:id", function(req, res, next){
         let {id} = req.params;
         let data = req.body;
         user = cache.get(id);
@@ -35,25 +50,11 @@ module.exports = (express, cache) => {
         });
         cache.set(id, user);
         res.status(200).send("success")
+        next();
     });
 
-    function _getHashPassword(password, salt){
-        let hashCode = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
-        return {
-            password: hashCode,
-            salt: salt
-        };
+    return {
+        protected: router,
+        unprotected: safe
     };
-    
-    function _getSalt(){
-        return crypto.randomBytes(10).toString("hex");
-    };
-
-    function _hasValidPassword(password, user){
-        let {password: savedPassword, salt} = user;
-        let hashObj = _getHashPassword(password, salt);
-        return crypto.timingSafeEqual(Buffer.from(savedPassword), Buffer.from(hashObj.password));
-    }
-
-    return router;
 }
