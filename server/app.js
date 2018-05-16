@@ -10,6 +10,6 @@ let app = express();
 
 app.use(bodyPraser.json());
 app.use(bodyPraser.urlencoded({extended: false}));
-app.use("/api/v1/", router.unprotected);
-app.use("/api/v1/", authMiddleware, router.protected);
+app.use("/api/v1", router.unprotected);
+app.use("/api/v1/user", authMiddleware, router.protected);
 app.listen(config.PORT);

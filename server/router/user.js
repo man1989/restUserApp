@@ -28,20 +28,21 @@ module.exports = (express, cache) => {
                 tokenId: token
             });
         }else{
-            res.status(404).send("invalid username or password");
-            console.log("authentication error");
+            res.status(404).send({
+                message: "invalid username or password"
+            });
         }
         next();
     });
 
-    router.get("/user/:id", function(req, res, next){
+    router.get("/:id", function(req, res, next){
         let {id} = req.params;
         let user = cache.get(id);
         res.status(200).send(user);
         next();
     });
 
-    router.put("/user/:id", function(req, res, next){
+    router.put("/:id", function(req, res, next){
         let {id} = req.params;
         let data = req.body;
         user = cache.get(id);

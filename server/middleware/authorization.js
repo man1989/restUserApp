@@ -6,7 +6,8 @@ module.exports = (cache) => {
     return (req, res, next) => {
         console.log("authenticating.....");
         let {"x-access-token": tokenId} = req.headers;
-        if(tokenId){
+        let isValid = tokenId && jwt.verify(tokenId, config.SECRET_KEY);
+        if(isValid){
             console.log("you are good");
             return next();
         }
