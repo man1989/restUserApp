@@ -1,5 +1,4 @@
 const config = require("../config");
-const validation  = require("../util/hashing");
 const jwt = require("jsonwebtoken");
 
 module.exports = (req, res, next) => {
@@ -15,9 +14,4 @@ module.exports = (req, res, next) => {
         console.error(err);
         return res.status(401).send("not authorized");
     }
-    if(isValid){
-        console.log("you are good");
-        
-    }
-    
 }

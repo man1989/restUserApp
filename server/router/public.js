@@ -6,19 +6,17 @@ const validate = require("../util/hashing");
 module.exports = (express, cache) => {
 
     let router = express.Router();
+    let User = require("../model/User")(cache);
 
     router.post("/register", (req, res, next) => {
-        let user = req.body;
-        let { username: id, password } = user;
-        let alreadyExists = cache.get(id);
-        if(alreadyExists){
+        let { username: id, password } = req.body;
+        let user = User.create(req.body);
+        if(User.exists(id)){
             return res.status(422).send({
                 message: "Already registered"
             });
         }
-        let hashObj = validate.getHashPassword(password, validate.getSalt());
-        Object.assign(user, hashObj);
-        cache.set(id, user);
+        User.save(user);
         res.status(201).send({
             message: "success"
         });
@@ -27,13 +25,13 @@ module.exports = (express, cache) => {
 
     router.post("/login", function (req, res, next) {
         let { username, password } = req.body;
-        let user = cache.get(username);
-        if(!user){
+        let user = User.getInstance(username);
+        if(!user.exists()){
             return res.status(404).send({
                 message: "please register first"
-            })
+            });
         }
-        let isValid = validate.isValidPassword(password, user);
+        let isValid = user.hasValidPassword(password, user.data);
         if (isValid) {
             let now = new Date().getTime();
             if (!_isValidAttempt(user, now)) {
@@ -42,7 +40,8 @@ module.exports = (express, cache) => {
                     secondsLeft: Math.round((user.attempts.lock - now) / 1000)
                 });
             }
-            let token = jwt.sign({ data: username }, config.SECRET_KEY, { "expiresIn": 5 * 60 }); //5min
+            // let token = jwt.sign({ data: username }, config.SECRET_KEY, { "expiresIn": 5 * 60 }); //5min
+            let token = user.getToken();
             res.status(200).send({
                 tokenId: token
             });
@@ -59,7 +58,7 @@ module.exports = (express, cache) => {
 
     return router;
 }
-function alreadyExisys(cache){
+function alreadyExists(cache){
 
 }
 function _isValidAttempt(user, now) {

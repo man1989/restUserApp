@@ -1,10 +1,10 @@
 module.exports = (express, cache) => {
 
     let router = express.Router();
-
+    let User = require("../model/User")(cache);
     router.get("/:id", function (req, res, next) {
         let { id } = req.params;
-        let user = cache.get(id);
+        let user = User.find(id);
         res.status(200).send(user);
         next();
     });
@@ -12,14 +12,10 @@ module.exports = (express, cache) => {
     router.put("/:id", function (req, res, next) {
         let { id } = req.params;
         let data = req.body;
-        user = cache.get(id);
-        Object.keys(data).forEach((key) => {
-            user[key] = data[key];
-        });
-        cache.set(id, user);
+        User.update(id, data);
         res.status(200).send({
-            message: "Updated Successfully"
-        })
+            message:  "Updated Successfully"
+        });
         next();
     });
 

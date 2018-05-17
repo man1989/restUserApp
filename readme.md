@@ -29,10 +29,10 @@ update the user profile
 #### Response
 ```json
 {
-    message:"updated successfully"
+    message:"Updated Successfully"
 }
 ```
-`Status: 204`
+`Status: 200`
 
 ### POST /register
 
