@@ -1,7 +1,7 @@
-module.exports = (express, cache) => {
+module.exports = (express) => {
 
     let router = express.Router();
-    let User = require("../model/User")(cache);
+    let User = require("../model/User");
     router.get("/:id", function (req, res, next) {
         let { id } = req.params;
         let user = User.find(id);

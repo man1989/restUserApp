@@ -3,10 +3,10 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const validate = require("../util/hashing");
 
-module.exports = (express, cache) => {
+module.exports = (express) => {
 
     let router = express.Router();
-    let User = require("../model/User")(cache);
+    let User = require("../model/User");
 
     router.post("/register", (req, res, next) => {
         let { username: id, password } = req.body;
@@ -34,11 +34,11 @@ module.exports = (express, cache) => {
         let isValid = user.hasValidPassword(password);
         let userData = user.data;
         if (isValid) {
-            let now = new Date().getTime();
-            if (!_isValidAttempt(userData, now)) {
+            let timeLeft = user.checkValidAttempt();
+            if (timeLeft >= 0) {
                 return res.status(403).send({
                     message: "You will able to login after",
-                    secondsLeft: Math.round((userData.attempts.lock - now) / 1000)
+                    secondsLeft: Math.round(timeLeft / 1000)
                 });
             }
             let token = user.getToken();
@@ -46,33 +46,14 @@ module.exports = (express, cache) => {
                 tokenId: token
             });
         } else {
-            _setInvalidAttempt(userData);
-            cache.set(username, userData);
+            user.setInvalidAttempts();
             res.status(404).send({
                 message: "invalid username or password",
-                left: userData.attempts.left
+                left: user.data.attempts.left
             });
         }
         next();
     });
 
     return router;
-}
-function alreadyExists(cache){
-
-}
-function _isValidAttempt(user, now) {
-    let attempts = user.attempts || {};
-    return attempts.lock ? now > attempts.lock : true;
-}
-
-function _setInvalidAttempt(user) {
-    let attempts = user.attempts || { left: 3 };
-    if (attempts.left === 1) {
-        attempts.left = --attempts.left
-        attempts.lock = new Date().getTime() + (1000 * 60);
-    } else {
-        attempts.left = --attempts.left
-    }
-    user.attempts = attempts;
 }

@@ -3,7 +3,9 @@ const crypto = require("crypto");
 const NodeCache = require("node-cache");
 const uuid = require("uuid/v1");
 const jwt = require("jsonwebtoken");
+const TOKEN_EXPIRE_TIME = (5 * 60) //5min;
 const TOTAL_VALID_ATTEMPT = 3;
+const LOCK_PERIOD = (1000*60) //1min
 
 function _getHashPassword(password, salt){
     let hashCode = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
@@ -45,14 +47,34 @@ User.prototype.exists = function () {
 User.prototype.hasValidPassword = function (password){
     let {password: savedPassword, salt} = this.data;
     let hashObj = _getHashPassword(password, salt);
-    console.log(password, hashObj, savedPassword);
     return crypto.timingSafeEqual(Buffer.from(savedPassword), Buffer.from(hashObj.password));    
+}
+User.prototype.ApplyLock = function(){
+    this.data.attempts.lock = new Date().getTime() + LOCK_PERIOD;
+}
+
+User.prototype.setInvalidAttempts = function(){
+    let user = this.data;
+    let {attempts = { left: 3 }} = user;
+    if (attempts.left === 1) {
+        attempts.left = --attempts.left
+        this.ApplyLock();
+    } else {
+        attempts.left = --attempts.left
+    }
+    this.data.attempts = attempts;
+    User.save(this);
+}
+
+User.prototype.checkValidAttempt = function(){
+    let now = new Date().getTime();
+    let attempts = this.data.attempts || {lock:0};
+    return (attempts.lock - now);
 }
 
 User.prototype.getToken = function(){
-    //expires in 5min
     let id = this.get("username");
-    return jwt.sign({ data: id }, config.SECRET_KEY, { "expiresIn": 5 * 60 });
+    return jwt.sign({ data: id }, config.SECRET_KEY, { "expiresIn":  TOKEN_EXPIRE_TIME});
 }
 
 User.prototype.getId = function(){
@@ -87,11 +109,6 @@ User.exists = function (id) {
     return !!this.cache.get(id)
 }
 
-User.xrespond = function (code, message) {
-    this.response.send(code).send(message);
-}
+User.cache = new NodeCache({ checkperiod: 120 });
 
-module.exports = (cache) => {
-    User.cache = cache || new NodeCache({ checkperiod: 120 });
-    return User;
-}
+module.exports = User;

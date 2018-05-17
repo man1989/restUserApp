@@ -1,14 +1,12 @@
 const config     = require("./config");
-const NodeCache  = require("node-cache");
 const bodyPraser = require("body-parser");
 const express    = require("express");
 const publicRoute = require("./router/public");
 const userRoute = require("./router/user");
 
-let cache = new NodeCache( { checkperiod: 120 })
 let authMiddleware = require("./middleware/authorization");
-let publicRouteMiddleware = publicRoute(express, cache);
-let userRouteMiddleware = userRoute(express, cache);
+let publicRouteMiddleware = publicRoute(express);
+let userRouteMiddleware = userRoute(express);
 
 let app = express();
 
