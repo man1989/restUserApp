@@ -1,23 +1,13 @@
 const config = require("../config");
+const hash = require("../util/hashing");
 const crypto = require("crypto");
 const NodeCache = require("node-cache");
 const uuid = require("uuid/v1");
 const jwt = require("jsonwebtoken");
+
 const TOKEN_EXPIRE_TIME = (5 * 60) //5min;
 const TOTAL_VALID_ATTEMPT = 3;
 const LOCK_PERIOD = (1000*60) //1min
-
-function _getHashPassword(password, salt){
-    let hashCode = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
-    return {
-        password: hashCode,
-        salt: salt
-    };
-};
-
-function _getSalt(){
-    return crypto.randomBytes(10).toString("hex");
-};
 
 function User(data) {
     this.data = data;
@@ -25,7 +15,7 @@ function User(data) {
 
 User.create = function(data){
     data.id = uuid();
-    let hashObj = _getHashPassword(data.password, _getSalt());
+    let hashObj = hash.getHashPassword(data.password);
     Object.assign(data, hashObj); 
     return new User(data)
 }
@@ -45,10 +35,9 @@ User.prototype.exists = function () {
 }
 
 User.prototype.hasValidPassword = function (password){
-    let {password: savedPassword, salt} = this.data;
-    let hashObj = _getHashPassword(password, salt);
-    return crypto.timingSafeEqual(Buffer.from(savedPassword), Buffer.from(hashObj.password));    
+    return hash.isValidPassword(password, this.data);
 }
+
 User.prototype.ApplyLock = function(){
     this.data.attempts.lock = new Date().getTime() + LOCK_PERIOD;
 }

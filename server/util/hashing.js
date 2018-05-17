@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 
 function _getHashPassword(password, salt){
+    salt = salt || _getSalt();
     let hashCode = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
     return {
         password: hashCode,
