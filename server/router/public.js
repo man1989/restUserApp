@@ -31,13 +31,14 @@ module.exports = (express, cache) => {
                 message: "please register first"
             });
         }
-        let isValid = user.hasValidPassword(password, user.data);
+        let isValid = user.hasValidPassword(password);
+        let userData = user.data;
         if (isValid) {
             let now = new Date().getTime();
-            if (!_isValidAttempt(user, now)) {
+            if (!_isValidAttempt(userData, now)) {
                 return res.status(403).send({
                     message: "You will able to login after",
-                    secondsLeft: Math.round((user.attempts.lock - now) / 1000)
+                    secondsLeft: Math.round((userData.attempts.lock - now) / 1000)
                 });
             }
             let token = user.getToken();
@@ -45,11 +46,11 @@ module.exports = (express, cache) => {
                 tokenId: token
             });
         } else {
-            _setInvalidAttempt(user);
-            cache.set(username, user);
+            _setInvalidAttempt(userData);
+            cache.set(username, userData);
             res.status(404).send({
                 message: "invalid username or password",
-                left: user.attempts.left
+                left: userData.attempts.left
             });
         }
         next();
