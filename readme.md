@@ -29,7 +29,7 @@ update the user profile
 #### Response
 ```json
 {
-    message:"updated successfully"
+    "message": "updated successfully"
 }
 ```
 `Status: 204`
