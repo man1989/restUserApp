@@ -26,7 +26,7 @@ User.getInstance =  function(id) {
 }
 
 User.prototype.get = function(key){
-    return this.data[key]
+    return this.data[key];
 }
 
 User.prototype.exists = function () {
