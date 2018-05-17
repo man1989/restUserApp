@@ -40,7 +40,6 @@ module.exports = (express, cache) => {
                     secondsLeft: Math.round((user.attempts.lock - now) / 1000)
                 });
             }
-            // let token = jwt.sign({ data: username }, config.SECRET_KEY, { "expiresIn": 5 * 60 }); //5min
             let token = user.getToken();
             res.status(200).send({
                 tokenId: token
