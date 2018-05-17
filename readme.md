@@ -1,4 +1,4 @@
-# Restify User
+# User Restified
 
 ## Route prefixes
    ```/api/v1```
