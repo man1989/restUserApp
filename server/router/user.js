@@ -17,7 +17,9 @@ module.exports = (express, cache) => {
             user[key] = data[key];
         });
         cache.set(id, user);
-        res.status(200).send("success")
+        res.status(200).send({
+            message: "Updated Successfully"
+        })
         next();
     });
 

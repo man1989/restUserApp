@@ -19,7 +19,9 @@ module.exports = (express, cache) => {
         let hashObj = validate.getHashPassword(password, validate.getSalt());
         Object.assign(user, hashObj);
         cache.set(id, user);
-        res.status(201).send("success");
+        res.status(201).send({
+            message: "success"
+        });
         next();
     });
 
