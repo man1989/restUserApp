@@ -13,7 +13,7 @@ let app = express();
 app.use(bodyPraser.json());
 app.use(bodyPraser.urlencoded({extended: false}));
 
-app.use("/api/v1", publicRouteMiddleware);
+app.use("/api/v1/", publicRouteMiddleware);
 app.use("/api/v1/user", authMiddleware, userRouteMiddleware);
 
 app.listen(config.PORT);

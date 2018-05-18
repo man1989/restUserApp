@@ -8,7 +8,7 @@ module.exports = (express) => {
     let router = express.Router();
     let User = require("../model/User");
 
-    router.post("/register", (req, res, next) => {
+    router.post("/user", (req, res, next) => {
         let { username: id, password } = req.body;
         let user = User.create(req.body);
         if(User.exists(id)){
@@ -23,7 +23,7 @@ module.exports = (express) => {
         next();
     });
 
-    router.post("/login", function (req, res, next) {
+    router.post("/user/login", function (req, res, next) {
         let { username, password } = req.body;
         let user = User.getInstance(username);
         if(!user.exists()){

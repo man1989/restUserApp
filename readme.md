@@ -34,7 +34,7 @@ update the user profile
 ```
 `Status: 200`
 
-### POST /register
+### POST /user
 
 Registers a User.
 
@@ -48,7 +48,7 @@ Registers a User.
 
 `Status: 201 Created`
 
-### POST /login
+### POST /user/login
 
 After user login it will return json webtoken which will be used for rest of user api's
 
